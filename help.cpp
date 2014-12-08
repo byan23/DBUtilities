@@ -2,6 +2,7 @@
 #include <functional>
 #include <string.h>
 #include <stdio.h>
+#include <iomanip>
 using namespace std;
 
 #include "error.h"
@@ -35,7 +36,29 @@ const Status RelCatalog::help(const string & relation)
 
   if (relation.empty()) return UT_Print(RELCATNAME);
 
-
-
+  status = getInfo(relation, rd);
+  if(status != OK) return status;
+  status = attrCat->getRelInfo(relation, attrCnt, attrs);
+  if(status != OK) return status;
+  cout<<"Relation name: "<<rd.relName<<" ("<<attrCnt<<" attributes)\n";
+  cout<<right<<setfill(' ')
+      <<setw(16)<<"Attribute name"
+      <<setw(6)<<"Off"
+      <<setw(4)<<"T"
+      <<setw(7)<<"Len\n"
+      <<right<<setfill('-')
+      <<setw(17)<<' '
+      <<setw(6)<<' '
+      <<setw(4)<<' '
+      <<"-----"<<endl;
+  for(int i = 0; i < attrCnt; i++)
+  {
+  	cout<<right<<setfill(' ')
+	    <<setw(16)<<attrs[i].attrName
+	    <<setw(6)<<attrs[i].attrOffset
+	    <<setw(4)<<attrs[i].attrType
+	    <<setw(6)<<attrs[i].attrLen<<endl;
+  }
+  delete [] attrs;
   return OK;
 }

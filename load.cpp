@@ -16,7 +16,7 @@
 const Status UT_Load(const string & relation, const string & fileName)
 {
   Status status;
-  RelDesc rd;
+  //RelDesc rd;
   AttrDesc *attrs;
   int attrCnt;
   InsertFileScan * iFile;
@@ -33,17 +33,15 @@ const Status UT_Load(const string & relation, const string & fileName)
     return UNIXERR;
 
   // get relation data
-
-
-
-
+  //status = relCat->getInfo(relation, rd);
+  //if(status != OK) return status;
+  status = attrCat->getRelInfo(relation, attrCnt, attrs);
+  if(status != OK) return status;
+  for(int i = 0; i < attrCnt; i++)
+	width += attrs[i].attrLen;
   // start insertFileScan on relation
-
-
-
-
-
-
+  iFile = new InsertFileScan(relation, status);
+  if(status != OK) return status;
 
 
   // allocate buffer to hold record read from unix file
@@ -65,6 +63,9 @@ const Status UT_Load(const string & relation, const string & fileName)
 
   // close heap file and unix file
   if (close(fd) < 0) return UNIXERR;
+  
+  delete [] attrs;
+  delete iFile;
 
   return OK;
 }

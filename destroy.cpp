@@ -19,11 +19,16 @@ const Status RelCatalog::destroyRel(const string & relation)
       relation == string(RELCATNAME) || 
       relation == string(ATTRCATNAME))
     return BADCATPARM;
+ 
+  //remove all relevant schema info from both the relcat and attrcat
+  status = removeInfo(relation);
+  if(status != OK) return status;
+  status = attrCat->dropRelation(relation);
+  //destroy the heapfile corresponding to the relation
+  status = destroyHeapFile(relation);
+  if(status != OK) return status;
 
-
-
-
-
+  return OK;
 }
 
 
@@ -44,10 +49,16 @@ const Status AttrCatalog::dropRelation(const string & relation)
   int attrCnt, i;
 
   if (relation.empty()) return BADCATPARM;
-
-
-
-
+  status = getRelInfo(relation, attrCnt, attrs);
+  if(status != OK) return status;
+  for(i = 0; i < attrCnt; i++){
+   const string atname(attrs[i].attrName);
+   status = removeInfo(relation, atname);
+   if(status != OK) return status;
+  }
+  delete [] attrs;
+  attrs = NULL;
+  return OK;
 
 }
 
