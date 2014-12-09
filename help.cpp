@@ -33,6 +33,7 @@ const Status RelCatalog::help(const string & relation)
   RelDesc rd;
   AttrDesc *attrs;
   int attrCnt;
+  char type;
 
   if (relation.empty()) return UT_Print(RELCATNAME);
 
@@ -51,12 +52,22 @@ const Status RelCatalog::help(const string & relation)
       <<setw(6)<<' '
       <<setw(4)<<' '
       <<"-----"<<endl;
+  
   for(int i = 0; i < attrCnt; i++)
   {
   	cout<<right<<setfill(' ')
 	    <<setw(16)<<attrs[i].attrName
-	    <<setw(6)<<attrs[i].attrOffset
-	    <<setw(4)<<attrs[i].attrType
+	    <<setw(6)<<attrs[i].attrOffset;
+	switch(attrs[i].attrType)
+	{	
+		case 0: type = 's';
+			break;
+		case 1: type = 'i';
+			break;
+		case 2: type = 'f';
+	}
+	cout<<right<<setfill(' ')
+	    <<setw(4)<<type
 	    <<setw(6)<<attrs[i].attrLen<<endl;
   }
   delete [] attrs;

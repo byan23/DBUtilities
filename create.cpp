@@ -10,7 +10,7 @@ const Status RelCatalog::createRel(const string & relation,
   RelDesc rd;
   AttrDesc ad;
   bool attrTooLong;
-
+  bool tupleTooLong;
   if (relation.empty() || attrCnt < 1)
     return BADCATPARM;
 
@@ -45,6 +45,10 @@ const Status RelCatalog::createRel(const string & relation,
   for(int i = 0; i < attrCnt; i++)
   {
 	attrTooLong = false;
+	tupleTooLong = false;
+	//check if offset more than PAGESIZE
+	if(curOffset >= PAGESIZE)
+		tupleTooLong = true;
 	//passing appropriate attribute info
 	strncpy(ad.relName, attrList[i].relName, MAXNAME);
  	strncpy(ad.attrName, attrList[i].attrName, MAXNAME);
@@ -58,7 +62,7 @@ const Status RelCatalog::createRel(const string & relation,
 	}	
   	ad.attrLen = attrList[i].attrLen;
   	status = attrCat->addInfo(ad);
-	if(status != OK || attrTooLong)
+	if(status != OK || attrTooLong || tupleTooLong)
 	{	
 		//delete all attribute before i from attrCat 
 		//(clear the attrCat as if the relation has never been added)
@@ -69,15 +73,18 @@ const Status RelCatalog::createRel(const string & relation,
 			if(tmpStatus != OK){ cout<<"err in create.cpp, deleting failure\n"; return tmpStatus;}
 		}
 		//delete the current ith attribute in attrCat, since it's already added.
-		if(attrTooLong)
+		if(status == OK)
 		{
 			const string attribute(attrList[i].attrName);
 			tmpStatus = attrCat->removeInfo(relation, attribute);
 			if(tmpStatus != OK){ cout<<"err in create.cpp, deleting failure2\n"; return tmpStatus;}
-			removeInfo(relation);
+		}
+		tmpStatus = removeInfo(relation);
+		if(tmpStatus != OK){ cout<<"err in create.cpp, deleting failure3\n"; return tmpStatus;}
+		if(tupleTooLong)
+			return NOSPACE;
+		if(attrTooLong)
 			return ATTRTOOLONG;
-		}	
-		removeInfo(relation);
 		return status;
 	}
 	curOffset += attrList[i].attrLen;

@@ -14,12 +14,11 @@
 const Status RelCatalog::destroyRel(const string & relation)
 {
   Status status;
-
+  
   if (relation.empty() || 
       relation == string(RELCATNAME) || 
       relation == string(ATTRCATNAME))
     return BADCATPARM;
- 
   //remove all relevant schema info from both the relcat and attrcat
   status = removeInfo(relation);
   if(status != OK) return status;
