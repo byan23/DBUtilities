@@ -18,7 +18,7 @@ const Status RelCatalog::createRel(const string & relation,
     return NAMETOOLONG;
 
 
-	cout<<"Creating new relation: "<<relation<<endl;
+	//cout<<"Creating new relation: "<<relation<<endl;
   //make sure that a relation with the same name doesn't already exist(using getInfo())
   status = getInfo(relation, rd);
   if(status != RELNOTFOUND)
@@ -62,11 +62,11 @@ const Status RelCatalog::createRel(const string & relation,
 	}	
   	ad.attrLen = attrList[i].attrLen;
   	status = attrCat->addInfo(ad);
+	//terminate the creation if something's wrong
 	if(status != OK || attrTooLong || tupleTooLong)
 	{	
-		//delete all attribute before i from attrCat 
-		//(clear the attrCat as if the relation has never been added)
-		for(int j = 0; j < i; j++)
+		//clear the attrCat as if the relation has never been added
+		/*for(int j = 0; j < i; j++)
 		{
 			const string attribute(attrList[j].attrName);
 			tmpStatus = attrCat->removeInfo(relation, attribute);
@@ -78,7 +78,11 @@ const Status RelCatalog::createRel(const string & relation,
 			const string attribute(attrList[i].attrName);
 			tmpStatus = attrCat->removeInfo(relation, attribute);
 			if(tmpStatus != OK){ cout<<"err in create.cpp, deleting failure2\n"; return tmpStatus;}
-		}
+		}*/
+
+		tmpStatus = attrCat->dropRelation(relation);
+		if(tmpStatus != OK) {cout<<"err in create.cpp, deleting failur\n"; return tmpStatus;}
+
 		tmpStatus = removeInfo(relation);
 		if(tmpStatus != OK){ cout<<"err in create.cpp, deleting failure3\n"; return tmpStatus;}
 		if(tupleTooLong)

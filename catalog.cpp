@@ -17,7 +17,7 @@ const Status RelCatalog::getInfo(const string & relation, RelDesc &record)
   Record rec;
   RID rid;
 
-	cout<<"Getting info of relation: "<<relation<<endl;
+	//cout<<"Getting info of relation: "<<relation<<endl;
 
   //invoke the startScan() to open a scan on the relcat relation
   HeapFileScan* scan = new HeapFileScan(RELCATNAME, status);
