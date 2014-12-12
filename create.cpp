@@ -1,6 +1,14 @@
 #include "catalog.h"
 
-
+/* Create the catalog and heapfile of a relation named 'relation' 
+ * 
+ * @param string relation the relation name of the relation we want to create
+ * 	  int attCnt the number of attributes that belongs to the relation
+ * 	  attrInfo attrList[] the attribute information of all the attributes 
+ * 	  	of the relation
+ * @return OK if successfully created
+ * 		otherwise on failures
+ */
 const Status RelCatalog::createRel(const string & relation, 
 				   const int attrCnt,
 				   const attrInfo attrList[])
@@ -66,20 +74,6 @@ const Status RelCatalog::createRel(const string & relation,
 	if(status != OK || attrTooLong || tupleTooLong)
 	{	
 		//clear the attrCat as if the relation has never been added
-		/*for(int j = 0; j < i; j++)
-		{
-			const string attribute(attrList[j].attrName);
-			tmpStatus = attrCat->removeInfo(relation, attribute);
-			if(tmpStatus != OK){ cout<<"err in create.cpp, deleting failure\n"; return tmpStatus;}
-		}
-		//delete the current ith attribute in attrCat, since it's already added.
-		if(status == OK)
-		{
-			const string attribute(attrList[i].attrName);
-			tmpStatus = attrCat->removeInfo(relation, attribute);
-			if(tmpStatus != OK){ cout<<"err in create.cpp, deleting failure2\n"; return tmpStatus;}
-		}*/
-
 		tmpStatus = attrCat->dropRelation(relation);
 		if(tmpStatus != OK) {cout<<"err in create.cpp, deleting failur\n"; return tmpStatus;}
 
@@ -93,13 +87,7 @@ const Status RelCatalog::createRel(const string & relation,
 	}
 	curOffset += attrList[i].attrLen;
   }
-  /*//add a tuple to the relcat relation
-  //filling in an instance of RelDesc and invoke relCatalog::addInfo()
-  strncpy(rd.relName, relation.c_str(), MAXNAME);
-  rd.attrCnt = attrCnt;
-  status = addInfo(rd);
-  if(status != OK) return status; 
-*/
+
   //create a HeapFile instance to hold tuples of the relation(like last prject?)
   status = createHeapFile(relation);
   if(status != OK) return status;

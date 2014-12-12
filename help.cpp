@@ -36,11 +36,12 @@ const Status RelCatalog::help(const string & relation)
   char type;
 
   if (relation.empty()) return UT_Print(RELCATNAME);
-
+  //get information of the corresponding relation
   status = getInfo(relation, rd);
   if(status != OK) return status;
   status = attrCat->getRelInfo(relation, attrCnt, attrs);
   if(status != OK) return status;
+  //print the relation with correct format
   cout<<"Relation name: "<<rd.relName<<" ("<<attrCnt<<" attributes)\n";
   cout<<right<<setfill(' ')
       <<setw(16)<<"Attribute name"
@@ -52,7 +53,7 @@ const Status RelCatalog::help(const string & relation)
       <<setw(6)<<' '
       <<setw(4)<<' '
       <<"-----"<<endl;
-  
+  //convert int value of type to s, i, f
   for(int i = 0; i < attrCnt; i++)
   {
   	cout<<right<<setfill(' ')

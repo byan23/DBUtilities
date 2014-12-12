@@ -1,5 +1,30 @@
+///////////////////////////////////////////////////////////////////////////////
+////                   ALL STUDENTS COMPLETE THESE SECTIONS
+//// Title:            front end catalogs
+//// Files:            catalog.cpp, heapfile.cpp heapfile.h, db.h, db.cpp, buf.cpp, 
+////                   buf.h, error.cpp, error.h, page.cpp, page.h, bufhash.cpp,
+////                   destroy.cpp, help.cpp, create.cpp, load.cpp etc.
+//// Semester:         CS564 Fall 2014
+////
+//// Author:           Cong Sun
+//// Email:            csun27@wisc.edu
+//// CS Login:         cong
+////////////////////// PAIR PROGRAMMERS COMPLETE THIS SECTION ////////////////////
+//// Pair Partner:     Boqun Yan
+//// Email:            byan23@wisc.edu
+//// CS Login:         boqun
+////////////////////////////// 80 columns wide //////////////////////////////////
+
 #include "catalog.h"
 
+///**
+// * It generates and implements a relation catalog and attribute catalog 
+// * for a DBMS
+// * <p>Bugs: No bug
+// * @author Cong Sun
+// *         Boqun Yan
+// */
+//
 
 RelCatalog::RelCatalog(Status &status) :
 	 HeapFile(RELCATNAME, status)
@@ -7,6 +32,13 @@ RelCatalog::RelCatalog(Status &status) :
 // nothing should be needed here
 }
 
+/* Get relation descriptor for a relation
+ * 
+ * @param string relation the relation name of the relation we want to create
+ * 	  RelDesc record the variable containing the description info of a relation
+ * @return OK if successfully got
+ *              otherwise on failures
+ */
 
 const Status RelCatalog::getInfo(const string & relation, RelDesc &record)
 {
@@ -45,6 +77,12 @@ const Status RelCatalog::getInfo(const string & relation, RelDesc &record)
   return OK;
 }
 
+/* Add information to catalog
+ *
+ *  @param RelDesc record the RelDEsc instance containing the information of the relation
+ *  @return OK on successful addition
+ *  	otherwise on failures
+ */
 
 const Status RelCatalog::addInfo(RelDesc & record)
 {
@@ -80,6 +118,15 @@ const Status RelCatalog::addInfo(RelDesc & record)
 
 }
 
+/* Remove tuple from catalog
+ * 
+ * @param string relation the relation name it trirs to remove
+ *
+ * @return OK on successful removement
+ * 	otherwise on failures
+ *
+ */
+
 const Status RelCatalog::removeInfo(const string & relation)
 {
   Status status;
@@ -106,20 +153,33 @@ const Status RelCatalog::removeInfo(const string & relation)
 
 }
 
-
+/*
+ * get rid of catalog
+ */
 RelCatalog::~RelCatalog()
 {
 // nothing should be needed here
 }
 
 
+/*
+* constructor
+* open the heapfile contains attribute catalog
+*/
 AttrCatalog::AttrCatalog(Status &status) :
 	 HeapFile(ATTRCATNAME, status)
 {
 // nothing should be needed here
 }
 
-
+/* Get the attribute descriptor record for attribute attrName in relation relName
+ * 
+ * @param string relation the relation name it tries to get the info of
+ *        string attrName the attribute name it tries to get info of the relation
+ *        AttrDesc record  return the attrDesc through this param
+ * @return OK on successful search
+ *         otherwise on failures
+ */
 const Status AttrCatalog::getInfo(const string & relation, 
 				  const string & attrName,
 				  AttrDesc &record)
@@ -135,12 +195,15 @@ const Status AttrCatalog::getInfo(const string & relation,
   if (relation.empty() || attrName.empty()) return BADCATPARM;
   hfs = new HeapFileScan(ATTRCATNAME, status); //new heapfile scan obj
   if (status != OK) return status;
+  //initialize a file scanner, using relation name as filter first
   status = hfs->startScan(0, strlen(crelation), STRING, crelation, EQ);
   if (status != OK) return status;
+  //scan the heap file
   while((status = hfs->scanNext(rid)) != FILEEOF){
     status = hfs->getRecord(rec);
     if(status != OK) return status;
     tmp = (AttrDesc*)rec.data;
+    //use c string to comapre
     if(strncmp(tmp->attrName, cattriname, strlen(cattriname)) == 0){
       //matching relation and matching attrName
       record = *tmp;
@@ -161,7 +224,12 @@ const Status AttrCatalog::getInfo(const string & relation,
   return ATTRNOTFOUND;
 }
 
-
+/* add the attribute descriptor record
+ * 
+ * @param  AttrDesc record attrDesc user you want to add to the attri catalog
+ * @return OK on successful search
+ *         otherwise on failures
+ */
 const Status AttrCatalog::addInfo(AttrDesc & record)
 {
   RID rid;
@@ -184,7 +252,13 @@ const Status AttrCatalog::addInfo(AttrDesc & record)
   return status;
 }
 
-
+/* Removes the tuple from attrcat that corresponds to attribute attrName of relation.
+ * 
+ * @param string relation the relation name the to be removed tuple has
+ *        string attrName the attribute name the to-be-removed tuple has
+ * @return OK on successful search
+ *         otherwise on failures
+ */
 const Status AttrCatalog::removeInfo(const string & relation, 
 			       const string & attrName)
 {
@@ -194,6 +268,7 @@ const Status AttrCatalog::removeInfo(const string & relation,
   AttrDesc record;
   HeapFileScan*  hfs;
   AttrDesc *tmp;
+  //convert the relation name and attribute name into c-string
   const char *crelation = relation.c_str();
   const char *cattriname = attrName.c_str();
   if (relation.empty() || attrName.empty()) return BADCATPARM;
@@ -201,10 +276,12 @@ const Status AttrCatalog::removeInfo(const string & relation,
   if (status != OK) return status;
   status = hfs->startScan(0, strlen(crelation), STRING, crelation, EQ);
   if (status != OK) return status;
+  // scan the heapfile using the filter -> find matching relation name
   while((status = hfs->scanNext(rid)) != FILEEOF){
     status = hfs->getRecord(rec);
     if(status != OK) return status;
     tmp = (AttrDesc*)rec.data;
+    //use c string to compare
     if(strncmp(tmp->attrName, cattriname, strlen(cattriname)) == 0){
       //matching relation and matching attrName
       hfs->deleteRecord();
@@ -221,6 +298,16 @@ const Status AttrCatalog::removeInfo(const string & relation,
 }
 
 
+/*
+ * Get (by reference) descriptors for all attributes of the relation via an array 
+ * of AttrDesc structures, and return the number of attributes in attrCnt
+ * @param string relation the relation name of the relation from which we want to get attrs
+ *        int attrCnt the number of attributes that belongs to this relation
+ *        AttrDesc* attrs the array to be returned that contains the attrs that belong to
+ *                  the relation
+ * @return OK on successful search
+ *         otherwise on failures
+ */
 const Status AttrCatalog::getRelInfo(const string & relation, 
 				     int &attrCnt,
 				     AttrDesc *&attrs)
@@ -235,6 +322,7 @@ const Status AttrCatalog::getRelInfo(const string & relation,
   if (relation.empty()) return BADCATPARM;
   hfs = new HeapFileScan(ATTRCATNAME, status); //new heapfile scan obj
   if(status != OK) return status;
+  //get the maximum length of the array
   maxCnt = hfs->getRecCnt();
   attrs = new AttrDesc[maxCnt];
   status = hfs->startScan(0, strlen(crelation), STRING, crelation, EQ);
@@ -246,6 +334,7 @@ const Status AttrCatalog::getRelInfo(const string & relation,
     i++;
   }
   if(rid.pageNo == -1 || rid.slotNo == -1) return RELNOTFOUND;
+  //get the attribute number
   attrCnt = i;
   hfs->endScan();
   delete hfs;

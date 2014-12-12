@@ -48,13 +48,16 @@ const Status AttrCatalog::dropRelation(const string & relation)
   int attrCnt, i;
 
   if (relation.empty()) return BADCATPARM;
+  //get all attrs belong to the relation
   status = getRelInfo(relation, attrCnt, attrs);
   if(status != OK) return status;
+  //delete them one by one
   for(i = 0; i < attrCnt; i++){
    const string atname(attrs[i].attrName);
    status = removeInfo(relation, atname);
    if(status != OK) return status;
   }
+  //free the array of attrDesc returned by getRelInfo
   delete [] attrs;
   attrs = NULL;
   return OK;
